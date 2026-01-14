@@ -68,8 +68,6 @@ class QubridVisionLLM:
             "temperature": temperature,
             "max_tokens": max_tokens,
             "top_p": top_p,
-            "top_k": top_k,
-            "presence_penalty": presence_penalty,
             "stream": True,
         }
         
@@ -80,7 +78,10 @@ class QubridVisionLLM:
             stream=True,
             timeout=60
         )
-        response.raise_for_status()
+        if response.status_code != 200:
+            error_msg = f"Qubrid API Error {response.status_code}: {response.text}"
+            print(error_msg)
+            raise ValueError(error_msg)
         
         # Parse Server-Sent Events (SSE)
         for line in response.iter_lines():

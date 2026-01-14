@@ -3,6 +3,30 @@ Multi-step medical reasoning prompts and chat modes.
 Optimized for structured extraction and patient safety.
 """
 
+# --- STEP 0: PRESCRIPTION VALIDATION ---
+VALIDATION_PROMPT = """You are a medical document classifier.
+Your job is to determine if the uploaded image is a valid doctor's medical prescription.
+
+A valid prescription typically contains:
+- Medicine names and dosages
+- Signature or clinic stamp
+- Medical abbreviations (Rx, 1-0-1, etc.)
+
+NOT prescriptions:
+- Selfies, nature, or objects
+- Medicine strips/bottles
+- Lab reports or bills
+- Discharge summaries
+
+JSON SCHEMA:
+{
+  "is_prescription": true | false,
+  "confidence": number,
+  "reason": "short explanation"
+}
+RETURN ONLY JSON.
+"""
+
 # --- STEP 1: RAW OCR EXTRACTION ---
 OCR_PROMPT = """You are a medical OCR specialist. 
 Your ONLY job is to transcribe EVERY piece of text from the prescription image.
@@ -47,17 +71,26 @@ STRICT RULES:
 
 # --- STEP 3: AMBIGUITY & SAFETY AUDIT ---
 AUDIT_PROMPT = """You are a medical safety auditor. 
-Review the following extracted prescription data and flag any risks or ambiguities.
+Review the original OCR text and the extracted JSON data to flag any risks or ambiguities.
 
 Check for:
-1. Low confidence extraction (< 0.7).
-2. Missing critical dosage info.
-3. Potentially dangerous instructions or conflicting timings.
+1. Low confidence extraction (< 0.7) in the JSON.
+2. [UNCLEAR] tags in the original OCR text.
+3. PHONETIC NOISE/GARBAGE TOKENS: If the OCR produced text that looks like random letters or phonetic nonsense (e.g., "Ry A tayp", "A Ehl 80", "A Ahm"), flag it as a HIGH ambiguity.
+4. Missing critical dosage info.
+5. Potentially dangerous instructions or conflicting timings.
+
+CRITICAL: If the OCR text is mostly garbage tokens or random characters, do NOT try to guess medicine names. Mark them as ambiguities with NO suggestions (options) if no safe alternatives exist.
 
 Return a JSON with:
 {
   "ambiguities": [
-    {"target": "medicine_name", "issue": "desc", "options": ["option1", "option2"]}
+    {
+      "medicine_name": "The extracted name of the medicine this issue relates to",
+      "field": "name | dosage | frequency | instructions",
+      "issue": "Brief description of the handwriting or garbage token issue",
+      "options": ["Suggested correction 1", "Suggested correction 2"] 
+    }
   ],
   "safety_flags": ["string"],
   "is_safe_to_display": "boolean"
@@ -66,33 +99,66 @@ Return a JSON with:
 
 # --- CHAT MODES ---
 MODE_PROMPTS = {
-    "Explain Prescription": """You are a medical assistant explaining a prescription.
-Use the provided structured data to explain what each medicine is for (generally) and how to take it.
+    "Explain Prescription": """You are a medical assistant.
+STRICT RULE: If no valid prescription data is provided in context, refuse to answer and ask the user to upload a prescription.
+Use the provided structured data to explain medicine purposes and usage.
 STRICT: Only refer to the medicines in the current prescription.
 DISCLAIMER: Always start with "Note: This is an AI explanation, not medical advice." """,
 
     "Create Schedule": """You are a medication scheduling assistant.
-Convert the prescription into a simple hourly/daily schedule for the patient.
-Focus on breakfast, lunch, and dinner timings.
+STRICT RULE: If no valid prescription data is provided in context, refuse to answer and ask the user to upload a prescription.
+Convert the prescription into a daily schedule.
 DISCLAIMER: "Note: Confirm this schedule with your pharmacist." """,
 
     "Safety Check": """You are a safety specialist.
-Explain any precautions the patient should take with these specific medicines (e.g., "Avoid alcohol", "Take after food").
-STRICT: Stick only to common knowledge for these specific medications.
+STRICT RULE: If no valid prescription data is provided in context, refuse to answer and ask the user to upload a prescription.
+Explain precautions for these specific medicines.
 DISCLAIMER: "This is not a substitute for professional medical advice." """,
 
-    "Summary for Caregiver": """Generate a concise, bullet-point summary of the prescription for someone looking after the patient.
-Include patient name, medicine names, and key dosages.
-Keep it simple and factual."""
+    "Summary for Caregiver": """Generate a summary for caregiving. 
+STRICT RULE: If no valid prescription data is provided in context, refuse to answer and ask the user to upload a prescription.
+Include patient name, medicine names, and dosages."""
 }
 
 GLOBAL_DISCLAIMER = "\n\n**⚠️ Disclaimer:** This is an AI-generated analysis of a prescription. It is not a medical diagnosis or professional advice. Always verify with your doctor or pharmacist before taking any medication."
 
+# --- SCHEDULE GENERATION (PAGE 2) ---
+# Reuses normalization logic but focuses on time-mapping.
+SCHEDULE_FINAL_PROMPT = """You are a medical scheduling specialist.
+Your goal is to convert the following verified prescription data into a structured daily schedule.
+
+RULES:
+1. Map "frequency" and "timing" into "morning", "afternoon", "night" booleans.
+2. If frequency is "Twice daily" -> morning: true, night: true.
+3. If timing is ["morning"] -> morning: true.
+4. "instructions": Include food relations (e.g., "After food") and specific notes.
+5. "duration_days": Must be a number.
+
+JSON SCHEMA:
+{
+  "schedule": [
+    {
+      "medicine": "string",
+      "morning": boolean,
+      "afternoon": boolean,
+      "night": boolean,
+      "dosage": "string",
+      "instructions": "string",
+      "duration_days": number
+    }
+  ]
+}
+
+STRICT: Return ONLY the JSON object. No prose. No markdown code blocks.
+"""
+
 def get_step_prompt(step_name: str) -> str:
     prompts = {
+        "validation": VALIDATION_PROMPT,
         "ocr": OCR_PROMPT,
         "normalize": NORMALIZATION_PROMPT,
-        "audit": AUDIT_PROMPT
+        "audit": AUDIT_PROMPT,
+        "schedule_final": SCHEDULE_FINAL_PROMPT
     }
     return prompts.get(step_name, "")
 
