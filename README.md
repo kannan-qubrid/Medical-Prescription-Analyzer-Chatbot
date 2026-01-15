@@ -204,10 +204,6 @@ A specialized, safety-first workflow to convert prescriptions into daily timelin
 -   **Visual Timeline**: Tabular daily schedule with Morning/Afternoon/Night slots.
 -   **PDF Export**: Downloadable medication schedule with mandatory patient disclaimers.
 
-### 💬 Focused Medical Chat Modes
-Users can interact with the analyzed prescription using specialized modes:
--   **🩺 Explain Prescription**: General explanation of purpose and usage.
-
 ### 💾 Persistent Intelligence (SQLite)
 -   **Conversation Restore**: Automatic storage of prescriptions and chat history.
 -   **Duplicate Detection**: Calculate SHA-256 hashes to instantly restore previously analyzed images.
