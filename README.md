@@ -92,6 +92,11 @@ This design prevents over-trust in AI outputs and improves real-world usability.
 
     You can create your Qubrid API Key from this link: [https://www.qubrid.com/models/Qwen3-VL-30B-A3B-Instruct](https://www.qubrid.com/models/Qwen3-VL-30B-A3B-Instruct)
 
+    ```bash
+    QUBRID_API_KEY= <YOUR_QUBRID_API_KEY>
+    QUBRID_API_BASE=https://platform.qubrid.com/api/v1/qubridai/multimodal/chat
+    ```
+
 4.  **Run the application**:
     ```bash
     uv run streamlit run app.py
