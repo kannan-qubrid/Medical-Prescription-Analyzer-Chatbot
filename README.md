@@ -88,7 +88,9 @@ This design prevents over-trust in AI outputs and improves real-world usability.
     ```
 
 3.  **Configure Environment**:
-    Create a `.env` file with your `QUBRID_API_KEY`.
+    Create a `.env` file with your `QUBRID_API_KEY`
+
+    You can create your Qubrid API Key from this link: [https://www.qubrid.com/models/Qwen3-VL-30B-A3B-Instruct](https://www.qubrid.com/models/Qwen3-VL-30B-A3B-Instruct)
 
 4.  **Run the application**:
     ```bash
@@ -205,6 +207,11 @@ Users can interact with the analyzed prescription using specialized modes:
 -   **Conversation Restore**: Automatic storage of prescriptions and chat history.
 -   **Duplicate Detection**: Calculate SHA-256 hashes to instantly restore previously analyzed images.
 -   **Multi-Page State**: Consistent data across "Analyzer" and "Smart Scheduler" workflows.
+
+## 🔗 Official Resources
+
+-   **Qubrid Official Cookbooks**: [Explore on GitHub](https://github.com/QubridAI-Inc/qubrid-cookbook)
+-   **Qubrid YouTube Channel**: [Watch Tutorials](https://www.youtube.com/watch?v=1LX-w2Sgvts&list=PLoaE-lmLecgPoYuSa2BsmlJ8isKB5KFtq)
 
 ---
 
