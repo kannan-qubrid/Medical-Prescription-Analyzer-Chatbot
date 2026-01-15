@@ -118,6 +118,41 @@ This design prevents over-trust in AI outputs and improves real-world usability.
 
 ---
 
+## 🏗️ System Architecture
+
+The following diagram and breakdown illustrate the project's 4-layer modular architecture, ensuring safety, scalability, and clear separation of concerns.
+
+![System Architecture](frontend/assets/architecture.png)
+
+### 🧩 Architectural Layers
+
+#### **Layer 1: User Interface (Frontend)**
+*Built with Streamlit, providing a high-fidelity, interactive experience.*
+*   **Welcome Screen**: Features an automated onboarding guide and safety instructions.
+*   **Sidebar Controls**: Manages conversation history, model parameters, and global image uploads.
+*   **Analysis Dashboard**: Renders color-coded medicine cards with confidence markers and an AI transparency panel.
+*   **Smart Scheduler UI**: Dedicated interface for converting extractions into visual daily timelines.
+
+#### **Layer 2: Application Logic (Orchestration)**
+*The glue layer that manages state and coordinates between the UI and Backend.*
+*   **Routing & Lifecycle (`app.py`)**: Handles multi-page navigation between the Analyzer and Smart Scheduler.
+*   **Session Management**: Maintains persistent state across workflows, ensuring data consistency.
+*   **Service Orchestration**: Coordinates high-level services like Extraction and Image Validation.
+
+#### **Layer 3: Modules (Core Backend)**
+*The engine of the application, responsible for processing data and persistence.*
+*   **VisionChain Module (`chain.py`)**: Orchestrates the **4-step Reasoning Pipeline** (Validation → OCR → Normalization → Audit).
+*   **Database Module (`db/`)**: SQLite persistence for image hashes, structured extractions, and chat history.
+*   **Prompt Module (`prompt.py`)**: Optimized medical instructions and safety guidelines for the Vision AI.
+*   **Client Module (`qubrid_client.py`)**: Robust wrapper for the Qubrid API with SSE streaming support.
+
+#### **Layer 4: External API (Vision Intelligence)**
+*The foundational intelligence layer powered by Qubrid AI.*
+*   **Qubrid AI Platform**: Hosts the industrial-grade vision infrastructure.
+*   **Model**: `Qwen3-VL-30B-A3B-Instruct` — capable of complex handwriting recognition and medical reasoning.
+
+---
+
 ## 📸 UI Screenshots
 
 ### Home Page & Upload
