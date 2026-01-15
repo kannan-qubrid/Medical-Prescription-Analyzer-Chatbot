@@ -122,7 +122,7 @@ This design prevents over-trust in AI outputs and improves real-world usability.
 
 The following diagram and breakdown illustrate the project's 4-layer modular architecture, ensuring safety, scalability, and clear separation of concerns.
 
-![System Architecture](frontend/assets/architecture.png)
+![System Architecture](frontend/assets/Architecture.png)
 
 ### 🧩 Architectural Layers
 
