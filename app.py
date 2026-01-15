@@ -10,7 +10,7 @@ from frontend.pages.page_prescription import render_prescription_page
 # Page configuration
 st.set_page_config(
     page_title="Medical Vision AI",
-    page_icon="💊",
+    page_icon="frontend/assets/qubrid_logo.png",
     layout="wide"
 )
 

@@ -9,6 +9,12 @@ from services.image_validation import validate_prescription
 from services.extraction_service import perform_extraction
 from scheduler.readiness import calculate_schedule_readiness
 from scheduler.pdf_export import generate_schedule_pdf
+from frontend.ui_components import (
+    render_sidebar, 
+    render_welcome_screen,
+    render_ambiguity_resolver,
+    render_unresolvable_card
+)
 from frontend.schedule_ui import (
     render_clarification_form, 
     render_schedule_table, 
@@ -18,7 +24,9 @@ from frontend.session_utils import load_into_session
 
 def render_schedule_page(model_config: Dict[str, Any], sidebar_file: Any):
     """Page 2 orchestrator: Smart Prescription Schedule."""
-    st.title("Smart Prescription Schedule 📅")
+    # UI Header
+    st.title("Smart Prescription Schedule 📅", anchor=False)
+    
     st.info("Convert your prescription into a safe, easy-to-follow daily schedule.")
     
     # 1. Image Upload Gate (Standard)
@@ -69,7 +77,20 @@ def render_schedule_page(model_config: Dict[str, Any], sidebar_file: Any):
         extraction = st.session_state.active_analysis["extraction"]
         audit_data = st.session_state.active_analysis["audit"]
         
-        # Check Readiness
+        # 1. Ambiguity Sync (Prescription Analysis Consistency)
+        ambiguity_state = audit_data.get("ambiguity_state", "CLEAR")
+        
+        if ambiguity_state == "UNRESOLVABLE":
+            render_unresolvable_card(extraction, audit_data)
+            st.divider()
+            return # Block further rendering
+            
+        elif ambiguity_state == "CLARIFIABLE":
+            render_ambiguity_resolver(audit_data, extraction)
+            st.divider()
+            return # Block until high-level confidence is restored
+
+        # 2. Check Readiness for Scheduling
         readiness = calculate_schedule_readiness(extraction)
         
         # State: Needs Clarification

@@ -21,8 +21,9 @@ def render_clarification_form(readiness: Dict[str, Any]):
     
     with st.form("schedule_clarification_form"):
         for med_name in medicines:
-            st.subheader(f"💊 {med_name}")
-            med_gaps = [gap["field"] for gap in all_gaps if gap["medicine"] == med_name]
+            st.subheader(f"{med_name}")
+            # Deduplicate fields for this medicine to avoid duplicate keys in the form
+            med_gaps = sorted(list(set([gap["field"] for gap in all_gaps if gap["medicine"] == med_name])))
             
             overrides[med_name] = {}
             
@@ -30,22 +31,23 @@ def render_clarification_form(readiness: Dict[str, Any]):
             for i, field in enumerate(med_gaps):
                 with cols[i]:
                     label = field.replace("_", " ").title()
+                    widget_key = f"clarify_{med_name}_{field}"
                     if field == "duration_days":
                         overrides[med_name][field] = st.number_input(
-                            f"{label}", min_value=1, max_value=90, value=5, key=f"{med_name}_{field}"
+                            f"{label}", min_value=1, max_value=90, value=5, key=widget_key
                         )
                     elif field == "frequency":
                         overrides[med_name][field] = st.selectbox(
                             f"{label}", 
                             ["Once daily", "Twice daily", "Thrice daily", "Four times daily", "As needed (PRN)"],
-                            key=f"{med_name}_{field}"
+                            key=widget_key
                         )
                     else:
                         overrides[med_name][field] = st.text_input(
-                            f"{label}", placeholder=f"Enter {label.lower()}", key=f"{med_name}_{field}"
+                            f"{label}", placeholder=f"Enter {label.lower()}", key=widget_key
                         )
         
-        submitted = st.form_submit_button("Proceed to Generate Schedule", use_container_width=True)
+        submitted = st.form_submit_button("Proceed to Generate Schedule", width="stretch")
         if submitted:
             # Basic validation
             valid = True

@@ -28,8 +28,15 @@ def render_prescription_page(model_config: Dict[str, Any], uploaded_file: Any):
         del st.session_state.switch_to_prescription_id
     
     # UI Header
-    st.title("Medical Prescription Analyzer 🩺")
-    st.caption("Structured Medical Intelligence Platform | Powered by Qubrid AI")
+    head_col1, head_col2 = st.columns([0.6, 0.4])
+    with head_col1:
+        st.title("Medical Prescription Analyzer 🩺", anchor=False)
+    with head_col2:
+        # Align image vertically with title by using a container or padding if needed, 
+        # but for now standard st.image should work.
+        st.image("frontend/assets/qubrid_banner.png", width="stretch")
+    
+    st.markdown("### **Structured Medical Intelligence Platform | Powered by Qubrid AI**")
     st.divider()
 
     # 1. Handle New Upload

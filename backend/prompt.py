@@ -108,16 +108,7 @@ DISCLAIMER: Always start with "Note: This is an AI explanation, not medical advi
     "Create Schedule": """You are a medication scheduling assistant.
 STRICT RULE: If no valid prescription data is provided in context, refuse to answer and ask the user to upload a prescription.
 Convert the prescription into a daily schedule.
-DISCLAIMER: "Note: Confirm this schedule with your pharmacist." """,
-
-    "Safety Check": """You are a safety specialist.
-STRICT RULE: If no valid prescription data is provided in context, refuse to answer and ask the user to upload a prescription.
-Explain precautions for these specific medicines.
-DISCLAIMER: "This is not a substitute for professional medical advice." """,
-
-    "Summary for Caregiver": """Generate a summary for caregiving. 
-STRICT RULE: If no valid prescription data is provided in context, refuse to answer and ask the user to upload a prescription.
-Include patient name, medicine names, and dosages."""
+DISCLAIMER: "Note: Confirm this schedule with your pharmacist." """
 }
 
 GLOBAL_DISCLAIMER = "\n\n**⚠️ Disclaimer:** This is an AI-generated analysis of a prescription. It is not a medical diagnosis or professional advice. Always verify with your doctor or pharmacist before taking any medication."

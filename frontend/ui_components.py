@@ -10,7 +10,9 @@ from db.prescriptions import get_all_prescriptions, delete_prescription, update_
 def render_welcome_screen():
     """Render welcome screen when no conversation is active."""
     
-    st.title("Welcome to Medical Prescription Analyzer 💊")
+    # UI Header for Welcome
+    st.title("Welcome to Medical Prescription Analyzer", anchor=False)
+    
     st.markdown("Upload a prescription image to extract structured intelligence and start a focused medical chat.")
     
     with st.expander("🛡️ Safety First - How it works", expanded=True):
@@ -18,7 +20,7 @@ def render_welcome_screen():
         1. **Upload Prescription**: Our Vision AI performs a 4-step analysis of the handwriting.
         2. **Review Cards**: Medicines are extracted into structured cards with confidence markers.
         3. **Resolve Ambiguity**: If the AI is unsure, it will ask you to clarify specific words.
-        4. **Focused Chat**: Switch between 'Explain', 'Schedule', or 'Safety' modes for specific insights.
+        4. **Focused Chat**: Switch between 'Explain' or 'Schedule' modes for specific insights.
         
         *Note: This tool is for informational purposes and does not replace professional medical advice.*
         """)
@@ -29,7 +31,7 @@ def render_medicine_cards(extraction: Dict[str, Any]):
     if not extraction or "medicines" not in extraction:
         return
 
-    st.subheader("💊 Extracted Medications")
+    st.subheader("Extracted Medications")
     
     # Overall Confidence Meter
     conf = extraction.get("overall_confidence", 0)
@@ -118,7 +120,7 @@ def render_unresolvable_card(extraction: Dict[str, Any], audit_data: Dict[str, A
         with col2:
             med_type = st.selectbox("Type", ["Tablet", "Syrup", "Injection", "Drops", "Ointment", "Other"])
             
-        submitted = st.form_submit_button("Confirm & Update Extraction", use_container_width=True)
+        submitted = st.form_submit_button("Confirm & Update Extraction", width="stretch")
         if submitted:
             if manual_name:
                 # Add to extraction
@@ -136,9 +138,8 @@ def render_unresolvable_card(extraction: Dict[str, Any], audit_data: Dict[str, A
                 extraction["medicines"].append(new_med)
                 extraction["overall_confidence"] = 0.8 # Boosted by human verification
                 
-                # Clear state on success? No, let Audit decide next rerun or just keep it.
-                # Actually, we should probably set state to CLARIFIABLE or CLEAR since we have input.
-                # But Audit runs on backend call. 
+                # Manually override state so it doesn't block UI on rerun
+                audit_data["ambiguity_state"] = "CLEAR"
                 
                 # Update DB
                 if "prescription_id" in st.session_state:
@@ -195,6 +196,8 @@ def render_ambiguity_resolver(audit_data: Dict[str, Any], extraction: Dict[str, 
                     
                     # Remove from ambiguities
                     ambiguities.pop(i)
+                    if not ambiguities:
+                        audit_data["ambiguity_state"] = "CLEAR"
                     st.success(f"Confirmed {field}: {opt}")
                     time.sleep(0.5)
                     st.rerun()
@@ -202,6 +205,8 @@ def render_ambiguity_resolver(audit_data: Dict[str, Any], extraction: Dict[str, 
             if cols[-1].button("None of these", key=f"amb_{i}_none", width="stretch"):
                 # Just remove it and let user handle in chat
                 ambiguities.pop(i)
+                if not ambiguities:
+                    audit_data["ambiguity_state"] = "CLEAR"
                 st.info("Please clarify in the chat below.")
                 time.sleep(0.5)
                 st.rerun()
@@ -211,7 +216,7 @@ def render_ambiguity_resolver(audit_data: Dict[str, Any], extraction: Dict[str, 
 def render_chat_mode_selector():
     """Render the mode selector for focused medical chat in the sidebar."""
     st.sidebar.subheader("🎯 Focused Medical Chat")
-    modes = ["🩺 Explain Prescription", "⏰ Create Schedule", "⚠️ Safety Check", "📄 Summary for Caregiver"]
+    modes = ["🩺 Explain Prescription", "⏰ Create Schedule"]
     
     selected_mode = st.sidebar.radio(
         "Select Chat Mode:",
